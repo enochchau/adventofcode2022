@@ -1,5 +1,3 @@
-(local inspect (require :inspect))
-
 (fn sum-i [nums sum i imax]
   "Sum nums up to the index max"
   (if (> i imax) sum (sum-i nums (+ sum (. nums i)) (+ 1 i) imax)))
