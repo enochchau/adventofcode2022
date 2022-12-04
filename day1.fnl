@@ -1,8 +1,10 @@
+(local input-file :./inputs/day1.txt)
+
 (fn sum-i [nums sum i imax]
   "Sum nums up to the index max"
   (if (> i imax) sum (sum-i nums (+ sum (. nums i)) (+ 1 i) imax)))
 
-(with-open [f (io.open :./inputs/day1.txt :r)]
+(with-open [f (io.open input-file :r)]
   (-> (let [res (accumulate [res {:totals [] :curr 0} line (f:lines)]
                   (match line
                     "" (do
@@ -16,6 +18,5 @@
         (when (> res.curr 0)
           (table.insert res.totals res.curr))
         (table.sort res.totals #(> $1 $2))
-        (-> res.totals
-            (sum-i 0 1 3)
-            (print)))))
+        (print "Part 1:" (. res.totals 1))
+        (print "Part 2:" (sum-i res.totals 0 1 3)))))
