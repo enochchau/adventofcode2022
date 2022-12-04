@@ -19,11 +19,8 @@
            (let [(fstr bstr) (split-sack sack)
                  front (str-to-set fstr)
                  back (str-to-set bstr)]
-             (var c "")
-             (each [fc _ (pairs front)]
-               (when (. back fc)
-                 (set c fc)))
-             (-> c
+             (-> (accumulate [char "" fc _ (pairs front)]
+                   (if (. back fc) fc char))
                  (get-priority)
                  (+ total))))
          (print "Part 1:"))))
@@ -42,9 +39,10 @@
 
   (fn str-arr-to-set-arr [arr]
     "transform array of strings to array of sets"
-    (each [i val (ipairs arr)]
-      (tset arr i (str-to-set val)))
-    arr)
+    (accumulate [set-arr [] _ val (ipairs arr)]
+      (do
+        (table.insert set-arr (str-to-set val))
+        set-arr)))
 
   (fn get-total [total get-group]
     (let [group (get-group)]
