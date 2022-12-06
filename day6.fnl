@@ -3,7 +3,7 @@
 (fn pprint [...]
   (print (fennel.view [...])))
 
-(fn part1 []
+(fn solver [framesize]
   (fn check [frame]
     (let [counts (accumulate [counts {} _ char (ipairs frame)]
                    (do
@@ -21,7 +21,7 @@
         (var char (f:read 1))
         (var i 0)
         (while (not= char nil)
-          (if (= (length frame) 4)
+          (if (= (length frame) framesize)
               (do
                 (if (check frame)
                     (do
@@ -33,4 +33,13 @@
           (set char (f:read 1))
           (set i (+ i 1)))))))
 
+(fn part1 []
+  (print :Part1)
+  (solver 4))
+
+(fn part2 []
+  (print :Part2)
+  (solver 14))
+
 (part1)
+(part2)
