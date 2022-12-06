@@ -36,21 +36,38 @@
   (accumulate [out "" _ row (ipairs matrix)]
     (.. out (. row (length row)))))
 
-(fn part1 []
+(fn solver [process]
   (let [iter (io.lines input-file)
         matrix (configure-matrix (get-matrix iter))]
-    (fn process [move from to]
-      (for [_ 1 move]
-        (table.insert (. matrix to) (table.remove (. matrix from)))))
-
     (each [line iter]
       (let [vals (-> [(string.match line "(%d+).*(%d+).*(%d+)")] (atoi-arr))]
         (if (not= nil (. vals 1))
-            (process (unpack vals)))))
-    (print (take-last matrix))))
+            (process matrix (unpack vals)))))
+    (take-last matrix)))
+
+(fn part1 []
+  (fn process [matrix move from to]
+    (for [_ 1 move]
+      (table.insert (. matrix to) (table.remove (. matrix from)))))
+
+  (print :Part1 (solver process)))
+
+(fn part2 []
+  (fn process [matrix move from to]
+    (let [to-m (. matrix to)
+          from-m (. matrix from)
+          inter []]
+      (for [_ 1 move]
+        (table.insert inter (table.remove from-m)))
+      (for [_ 1 move]
+        (table.insert to-m (table.remove inter)))))
+
+  (print :Part2 (solver process)))
 
 (part1)
+(part2)
 
+;; part 1
 ;; reading the puzzel input
 ;; 1 2 3 4 
 ;; [ X ] 
