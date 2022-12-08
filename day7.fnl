@@ -1,7 +1,7 @@
 (local input-file :./inputs/day7.txt)
 (local pprint vim.pretty_print)
 
-(fn part1 []
+(fn build-fs []
   (var stack [])
 
   (fn currdir []
@@ -41,10 +41,22 @@
         (line:match "^%d") (proc-file line)))
   (each [_ dir (pairs dirs)]
     (tset dir :total (get-total dir)))
-  (accumulate [largest 0 _ dir (pairs dirs)]
-    (if (<= dir.total 100000)
-        (+ largest dir.total)
-        largest)))
+  dirs)
+
+(fn part1 []
+  (let [dirs (build-fs)]
+    (accumulate [largest 0 _ dir (pairs dirs)]
+      (if (<= dir.total 100000)
+          (+ largest dir.total)
+          largest))))
+
+(fn part2 []
+  (let [dirs (build-fs)
+        free (- 70000000 (. dirs "/" :total))
+        needed (- 30000000 free)]
+    (math.min (unpack (icollect [_ dir (pairs dirs)]
+                        (if (>= dir.total needed) dir.total))))))
 
 (pprint :part1 (part1))
+(pprint :part2 (part2))
 nil
