@@ -1,4 +1,4 @@
-(local input-file :./inputs/day8ex.txt)
+(local input-file :./inputs/day8.txt)
 ;; (local pprint vim.pretty_print)
 (local fennel (require :bulb.fennel))
 (fn pprint [...]
@@ -54,37 +54,14 @@
   count)
 
 (fn part2 []
-  (fn lt [value height]
-    (< value height))
-
-  (fn gt [value height]
-    (> value height))
-
-  (fn pick-cmp [value height]
-    (if (< value height) lt
-        (> value height) gt
-        pick-cmp))
-
   (fn dir [next-row next-col]
-    (fn step [row col matrix height cmp count]
-      (fn next-step [res val cmp]
-        (if res
-            (step (next-row row) (next-col col) matrix
-                  (if (= cmp lt) height val) cmp (+ 1 count))
-            count))
-
+    (fn step [row col matrix height count]
       (if (out-of-bounds row col matrix)
           count
-          (let [val (. matrix row col)
-                cmp-res (cmp val height)]
-            (pprint row col cmp-res {: val : height})
-            (if (= (type cmp-res) :function)
-                (if (= cmp-res pick-cmp)
-                    (step (next-row row) (next-col col) matrix height cmp-res
-                          (+ 1 count))
-                    (let [res (cmp-res val height)]
-                      (next-step res val cmp-res)))
-                (next-step cmp-res val cmp))))))
+          (let [val (. matrix row col)]
+            (if (< val height)
+                (step (next-row row) (next-col col) matrix height (+ 1 count))
+                (+ 1 count))))))
 
   (local north (dir incr same))
   (local south (dir decr same))
@@ -93,11 +70,10 @@
 
   (fn check [row col matrix]
     (let [height (. matrix row col)
-          n (north (incr row) col matrix height pick-cmp 0)
-          s (south (decr row) col matrix height pick-cmp 0)
-          w (west row (decr col) matrix height pick-cmp 0)
-          e (east row (incr col) matrix height pick-cmp 0)]
-      (pprint row col {: n : s : w : e})
+          n (north (incr row) col matrix height 0)
+          s (south (decr row) col matrix height 0)
+          w (west row (decr col) matrix height 0)
+          e (east row (incr col) matrix height 0)]
       (* n s w e)))
 
   (var best 0)
@@ -110,5 +86,3 @@
 
 ;; (pprint :part1 (part1))
 (pprint :part2 (part2))
-
-;; check that all the trees around a tree is visible
