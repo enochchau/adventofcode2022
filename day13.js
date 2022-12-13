@@ -30,25 +30,57 @@ let cmp = (l, r) => {
   }
 
   if (i === r.length && r.length < l.length) return false;
-  if (r.length === l.length) return null
+  if (r.length === l.length) return null;
 
   return true;
 };
 
-let input = fs
-  .readFileSync(inputFile)
-  .toString()
-  .trim()
-  .split("\n\n")
-  .map((pairs) => pairs.split("\n").map((l) => JSON.parse(l)));
+function part1() {
+  let input = fs
+    .readFileSync(inputFile)
+    .toString()
+    .trim()
+    .split("\n\n")
+    .map((pairs) => pairs.split("\n").map((l) => JSON.parse(l)));
 
-let sum = 0;
-for (let i = 0; i < input.length; i++) {
-  let [left, right] = input[i];
+  let sum = 0;
+  for (let i = 0; i < input.length; i++) {
+    let [left, right] = input[i];
 
-  if (cmp(left, right)) {
-    sum += i + 1;
+    if (cmp(left, right)) {
+      sum += i + 1;
+    }
   }
+
+  log(sum);
 }
 
-log(sum);
+function part2() {
+  let input = fs
+    .readFileSync(inputFile)
+    .toString()
+    .trim()
+    .split("\n")
+    .filter((s) => s)
+    .map((s) => JSON.parse(s));
+
+  input.push([[2]]);
+  input.push([[6]]);
+
+  input.sort((a, b) => {
+    if (cmp(a, b)) return -1;
+    else return 1;
+  });
+
+  let key = 1;
+  input.forEach((a, i) => {
+    if (
+      JSON.stringify([[2]]) === JSON.stringify(a) ||
+      JSON.stringify([[6]]) === JSON.stringify(a)
+    ) {
+      key *= i +1;
+    }
+  });
+  log(key);
+}
+part2();
