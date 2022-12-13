@@ -61,19 +61,20 @@ for (let row = 0; row < m.length; row++) {
   }
 }
 
-let q = [{ point: end, step: 0 }];
+let q = [{ point: start, step: 0 }];
 let seen = new Set();
 
 while (q.length) {
   let { point, step } = q.shift();
   seen.add(point);
-  if (point === start) {
-    log(step)
+  if (point === end) {
+    log(step);
     break;
   }
 
   adj[point].forEach((next) => {
-    if (seen.has(next)) return;
-    q.push({ point: next, step: step + 1 });
+    if (!seen.has(next)) {
+      q.push({ point: next, step: step + 1 });
+    }
   });
 }
