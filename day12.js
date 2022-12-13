@@ -1,3 +1,4 @@
+const assert = require("node:assert");
 const fs = require("fs");
 
 let intputFile = "./inputs/day12.txt";
@@ -26,8 +27,7 @@ const findEnd = find(E);
 const inBounds = (m, row, col) =>
   row >= 0 && row < m.length && col >= 0 && col < m[row].length;
 
-const canMove = (m, row, col, nRow, nCol) =>
-  Math.abs(m[row][col] - m[nRow][nCol]) <= 1;
+const canMove = (m, row, col, nRow, nCol) => m[nRow][nCol] - m[row][col] <= 1;
 
 // ----
 let input = fs.readFileSync(intputFile).toString();
@@ -61,20 +61,41 @@ for (let row = 0; row < m.length; row++) {
   }
 }
 
-let q = [{ point: start, step: 0 }];
+let q = [start];
 let seen = new Set();
+let costs = Object.keys(adj).reduce((acc, k) => {
+  acc[k] = Infinity;
+  return acc;
+}, {});
+costs[start] = 0;
 
-while (q.length) {
-  let { point, step } = q.shift();
-  seen.add(point);
+while (q.length > 0) {
+  let point = q.shift();
+  let cost = costs[point];
+
   if (point === end) {
-    log(step);
     break;
   }
 
-  adj[point].forEach((next) => {
-    if (!seen.has(next)) {
-      q.push({ point: next, step: step + 1 });
+  seen.add(point);
+
+  let needsSort = false;
+  for (const next of adj[point]) {
+    if (!seen.has(next) || costs[next] > cost + 1) {
+      q.push(next);
+      costs[next] = cost + 1;
+      needsSort = true;
     }
-  });
+  }
+
+  if (needsSort)
+    q.sort((a, b) => {
+      if (costs[a] > costs[b]) return 1;
+      if (costs[a] < costs[b]) return -1;
+      return 0;
+    });
 }
+
+log(costs);
+log("end", end);
+log("end costs", costs[end]);
