@@ -67,7 +67,6 @@ let seen = new Set();
 while (q.length) {
   let { point, step } = q.shift();
   seen.add(point);
-  log(point, step)
   if (point === start) {
     log(step)
     break;
