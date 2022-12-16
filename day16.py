@@ -25,9 +25,39 @@ def find_steps(adj: AdjMatrix, curr: str, end: str, steps: int, seen: set[str]):
 
     return min(next_steps)
 
+def calc_pressure(open_valvs: list[int], pressure: int, cost: int):
+    next_pressure = pressure
+    for p in open_valvs:
+        next_pressure += p * cost
+    return next_pressure
+
+def explore(rates, loc: str, time_left: int, open_valvs: list[int], pressure: int):
+    if time_left == 0:
+        return pressure
+
+
+    found = [0]
+    for k in rates:
+        steps = find_steps(adj, loc, k, 0, set())
+        val = valv_val(time_left, steps, rates[k])
+        cost = steps + 1
+
+        if val > 0:
+            if time_left - cost <= 0:
+                next_pressure = calc_pressure(open_valvs, pressure, 1)
+                f = explore(rates, k, time_left - 1, open_valvs, next_pressure)
+                found.append(f)
+            else:
+                next_valvs = open_valvs.copy()
+                next_valvs.append(rates[k])
+                next_pressure = calc_pressure(open_valvs, pressure, cost)
+                f = explore(rates, k, time_left - cost, next_valvs, next_pressure)
+                found.append(f)
+    return max(found)
+
 
 if __name__ == "__main__":
-    input_file = "./inputs/day16.txt"
+    input_file = "./inputs/day16ex.txt"
     rates: dict[str, int] = {}
     adj: AdjMatrix = {}
     with open(input_file) as file:
@@ -38,36 +68,15 @@ if __name__ == "__main__":
             adj[valv] = valvs
             rates[valv] = int(re.findall("\\d+", line).pop())
 
-    # current location
-    loc = "AA"
-    time_left = 30
-    open_valv_rates: list[int] = []
-    pressure = 0
-
     # we need to assign every node a weight based on valv_val
     # 1. find the # of steps from current loc to next valv
     # 2. calc each valv value and choose highest value
     # 3. decrement time by amount needed to open that valv
     # -> during this process, track pressure released
 
-
-    # we need to explore every none-zero possibility and then choose the one 
+    # we need to explore every none-zero possibility and then choose the one
     # with the highest pressure release
 
-    while time_left > 0:
-        next_loc = loc
-        next_val = 0
-        next_cost = 0
+    # This probably has some dynamic programming involved to cache previous steps?
 
-        v = {}
-        for k in rates:
-            dist = find_steps(adj, loc, k, 0, set())
-            val = valv_val(time_left, dist, rates[k])
-            v[k] = (val, rates[k], dist + 1)
-            if val > next_val:
-                next__val = val
-                next_loc = k
-                next_cost = dist + 1
-
-        print(v)
-        break
+    print("part1", explore(rates, "AA", 30, [], 0))
