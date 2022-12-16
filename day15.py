@@ -38,46 +38,56 @@ def part1(lines):
     print("part1", len(coverage))
 
 
-def part2(lines, xmax: int, ymax: int):
-    coverage: list[list[dict[str, int]]] = []
-    # coverage = list[tuple[int, int, int, int]]
-    for y in range(0, ymax + 1):
-        coverage.append([])
+def check_point(lines, x, y):
+    found = True
+    for l in lines:
+        sx, sy, bx, by = l
+        distance = m_dist(sx, sy, bx, by)
+
+        d = m_dist(sx,sy, x, y)
+        found = found and d > distance
+
+        if not found:
+            return found
+
+    return found
+
+def freq(x,y):
+    return x * 4000000 + y
+
+def part2(lines, bound: int):
+    # we only have to check the points just outside the bounds
 
     for l in lines:
         sx, sy, bx, by = l
-        dist = m_dist(sx, sy, bx, by)
+        distance = m_dist(sx, sy, bx, by)
 
-        for y in range(0, ymax + 1):
+        for y in range(max(sy - distance, 0), min(sy + distance, bound) + 1):
             y_dist = abs(sy - y)
-            x_dist = dist - y_dist
-            if x_dist >= 0:
-                coverage[y].append(
-                    {"min": max(sx - x_dist, 0), "max": min(sx + x_dist, xmax)}
-                )
-    print("fin coverage")
+            x_dist = distance - y_dist
+            # check just outside x low and x high
+            xlow = sx - x_dist - 1
+            if xlow >= 0 and xlow <= bound:
+                if check_point(lines, xlow, y):
+                    return freq(xlow, y)
 
-    for i, y_cov in enumerate(coverage):
-        print("-> y = ", i)
-        x_possible = set()
-        for n in range(0, xmax + 1):
-            x_possible.add(n)
+            xhigh = sx + x_dist + 1
+            if xhigh >= 0 and xhigh <= bound:
+                if check_point(lines, xhigh, y):
+                    return freq(xhigh, y)
 
-        for x_cov in y_cov:
-            for x in range(x_cov["min"], x_cov["max"] + 1):
-                if x in x_possible:
-                    x_possible.remove(x)
 
-        l_xp = list(x_possible)
-        if len(l_xp) > 0:
-            print("part2 freq:", l_xp[0] * 4000000 + i)
-            break
 
 
 if __name__ == "__main__":
+
+    lines = parse(input_fileex)
+    sol = part2(lines, 20)
+    print('part2 ex', sol)
+
+
     lines = parse(input_file)
     # part1(lines)
-    part2(lines, 4000000, 4000000)
+    sol = part2(lines, 4000000)
+    print("part2", sol)
 
-    # lines = parse(input_fileex)
-    # part2(lines, 20, 20)
