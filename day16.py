@@ -6,24 +6,18 @@ AdjMatrix = dict[str, list[str]]
 StepCosts = dict[str, dict[str, int]]
 Rates = dict[str, int]
 
-# the value of a valv is
-# value = (time_left - steps - turn_time) * rate
-# steps = number of hops from current location to valv
-# turn_time = 1
-def valv_val(time_left: int, steps: int, rate: int):
-    return (time_left - steps - 1) * rate
-
 
 def find_steps(adj: AdjMatrix, curr: str, end: str, steps: int, seen: set[str]):
     if curr == end:
         return steps
 
-    seen.add(curr)
+    next_seen = seen.copy()
+    next_seen.add(curr)
 
     next_steps = [inf]
     for next in adj[curr]:
-        if not next in seen:
-            next_steps.append(find_steps(adj, next, end, steps + 1, seen))
+        if not next in next_seen:
+            next_steps.append(find_steps(adj, next, end, steps + 1, next_seen))
 
     return min(next_steps)
 
@@ -39,7 +33,7 @@ def explore(
     time_left: int,
     open_valv_rates: int,
     pressure: int,
-    is_open: set[str]
+    is_open: set[str],
 ) -> int:
     if time_left == 0:
         return pressure
@@ -68,7 +62,7 @@ def explore(
                 next_time,
                 open_valv_rates + rates[k],
                 calc_pressure(open_valv_rates, pressure, time_spent),
-                next_is_open
+                next_is_open,
             )
 
         found.append(f)
@@ -86,7 +80,7 @@ if __name__ == "__main__":
     # we need to explore every none-zero possibility and then choose the one
     # with the highest pressure release
 
-    input_file = "./inputs/day16ex.txt"
+    input_file = "./inputs/day16.txt"
     rates: Rates = {}
     adj: AdjMatrix = {}
     with open(input_file) as file:
@@ -104,6 +98,6 @@ if __name__ == "__main__":
             for j in adj:
                 if rates[j] > 0 and k != j:
                     step_costs[k][j] = find_steps(adj, k, j, 0, set())
-    
+
     res = explore(step_costs, rates, "AA", 30, 0, 0, set())
     print("part1", res)
