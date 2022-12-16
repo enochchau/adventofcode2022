@@ -31,7 +31,7 @@ def calc_pressure(open_valvs: list[int], pressure: int, cost: int):
         next_pressure += p * cost
     return next_pressure
 
-def explore(rates, loc: str, time_left: int, open_valvs: list[int], pressure: int):
+def explore(adj: AdjMatrix, rates, loc: str, time_left: int, open_valvs: list[int], pressure: int):
     if time_left == 0:
         return pressure
 
@@ -45,13 +45,13 @@ def explore(rates, loc: str, time_left: int, open_valvs: list[int], pressure: in
         if val > 0:
             if time_left - cost <= 0:
                 next_pressure = calc_pressure(open_valvs, pressure, 1)
-                f = explore(rates, k, time_left - 1, open_valvs, next_pressure)
+                f = explore(adj, rates, k, time_left - 1, open_valvs, next_pressure)
                 found.append(f)
             else:
                 next_valvs = open_valvs.copy()
                 next_valvs.append(rates[k])
                 next_pressure = calc_pressure(open_valvs, pressure, cost)
-                f = explore(rates, k, time_left - cost, next_valvs, next_pressure)
+                f = explore(adj, rates, k, time_left - cost, next_valvs, next_pressure)
                 found.append(f)
     return max(found)
 
@@ -79,4 +79,4 @@ if __name__ == "__main__":
 
     # This probably has some dynamic programming involved to cache previous steps?
 
-    print("part1", explore(rates, "AA", 30, [], 0))
+    print("part1", explore(adj, rates, "AA", 30, [], 0))
