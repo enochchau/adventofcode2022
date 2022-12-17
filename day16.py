@@ -1,10 +1,33 @@
 import re
 
+input_file = "./inputs/day16ex.txt"
 inf = 9000000000000000
 
 AdjMatrix = dict[str, list[str]]
 StepCosts = dict[str, dict[str, int]]
 Rates = dict[str, int]
+
+
+def parse(input_file) -> tuple[StepCosts, Rates]:
+    rates: Rates = {}
+    adj: AdjMatrix = {}
+    with open(input_file) as file:
+        for line in file.readlines():
+            valvs = re.findall("[A-Z]{2}", line)
+            valvs.reverse()
+            valv = valvs.pop()
+            adj[valv] = valvs
+            rates[valv] = int(re.findall("\\d+", line).pop())
+
+    step_costs: StepCosts = {}
+    for k in adj:
+        if rates[k] > 0 or k == "AA":
+            step_costs[k] = {}
+            for j in adj:
+                if rates[j] > 0 and k != j:
+                    step_costs[k][j] = find_steps(adj, k, j, 0, set())
+
+    return step_costs, rates
 
 
 def find_steps(adj: AdjMatrix, curr: str, end: str, steps: int, seen: set[str]):
@@ -26,7 +49,7 @@ def calc_pressure(open_valv_rates: int, pressure: int, time_spent: int):
     return pressure + (open_valv_rates * time_spent)
 
 
-def explore(
+def part1(
     step_costs: StepCosts,
     rates: Rates,
     loc: str,
@@ -55,7 +78,7 @@ def explore(
             next_is_open = is_open.copy()
             next_is_open.add(k)
 
-            f = explore(
+            f = part1(
                 step_costs,
                 rates,
                 k,
@@ -71,33 +94,6 @@ def explore(
 
 
 if __name__ == "__main__":
-    # we need to assign every node a weight based on valv_val
-    # 1. find the # of steps from current loc to next valv
-    # 2. calc each valv value and choose highest value
-    # 3. decrement time by amount needed to open that valv
-    # -> during this process, track pressure released
+    step_costs, rates = parse(input_file)
 
-    # we need to explore every none-zero possibility and then choose the one
-    # with the highest pressure release
-
-    input_file = "./inputs/day16.txt"
-    rates: Rates = {}
-    adj: AdjMatrix = {}
-    with open(input_file) as file:
-        for line in file.readlines():
-            valvs = re.findall("[A-Z]{2}", line)
-            valvs.reverse()
-            valv = valvs.pop()
-            adj[valv] = valvs
-            rates[valv] = int(re.findall("\\d+", line).pop())
-
-    step_costs: StepCosts = {}
-    for k in adj:
-        if rates[k] > 0 or k == "AA":
-            step_costs[k] = {}
-            for j in adj:
-                if rates[j] > 0 and k != j:
-                    step_costs[k][j] = find_steps(adj, k, j, 0, set())
-
-    res = explore(step_costs, rates, "AA", 30, 0, 0, set())
-    print("part1", res)
+    print("part1", part1(step_costs, rates, "AA", 30, 0, 0, set()))
