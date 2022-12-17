@@ -1,5 +1,5 @@
 let fs = require("fs");
-let inputFile = "./inputs/day11ex.txt";
+let inputFile = "./inputs/day11.txt";
 let log = console.log;
 
 function parse() {
@@ -82,9 +82,23 @@ function part1() {
   log("part1", getAns(monkeys));
 }
 
+// lets get some code from stack overflow
+function gcd(a,b){
+  var t = 0;
+  a < b && (t = b, b = a, a = t); // swap them if a < b
+  t = a%b;
+  return t ? gcd(b,t) : b;
+}
+
+function lcm(a,b){
+  return a/gcd(a,b)*b;
+}
+
 function part2() {
   let monkeys = parse();
-  let rounds = 20; // 10000;
+  let rounds = 10000;
+  let LCM = monkeys.map(m => m.test.divisor).reduce((acc, item) => lcm(acc, item))
+
   for (let i = 0; i < rounds; i++) {
     monkeys.forEach((monkey) => {
       while (monkey.items.length) {
@@ -92,20 +106,14 @@ function part2() {
         let item = runInspect(old, monkey.op);
         monkey.business += 1;
 
-        let next;
-        let mod = item % monkey.test.divisor;
-        if (mod) {
-          next = monkey.test.fail;
-        } else {
-          next = monkey.test.pass;
-          item = item % monkey.test.divisor;
-        }
+        item = item % LCM
 
-        monkeys[next].items.push(item % monkey.test.divisor);
+        let next = getNext(item, monkey.test);
+
+        monkeys[next].items.push(item);
       }
     });
   }
-  log(monkeys);
   log("part2", getAns(monkeys));
 }
 
