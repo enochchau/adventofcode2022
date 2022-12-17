@@ -2,71 +2,112 @@ let fs = require("fs");
 let inputFile = "./inputs/day11ex.txt";
 let log = console.log;
 
-let buildOp = (op, opVal) => (old) => {
-  if (isNaN(opVal)) opVal = old;
-  if (op === "+") {
-    return opVal + old;
+function parse() {
+  return fs
+    .readFileSync(inputFile)
+    .toString()
+    .trim()
+    .split("\n")
+    .reduce((sevens, line, i) => {
+      if (i % 7 === 0) {
+        sevens.push([]);
+      }
+      sevens[sevens.length - 1].push(line);
+      return sevens;
+    }, [])
+    .map((seven) => {
+      let items = Array.from(seven[1].matchAll(/\d+/g)).map((m) =>
+        parseInt(m[0])
+      );
+
+      let op = {
+        op: seven[2].match(/[+*]/)[0],
+        val: parseInt(seven[2].match(/(old|\d+)$/)[0]),
+      };
+
+      let test = {
+        divisor: parseInt(seven[3].match(/\d+/)[0]),
+        pass: parseInt(seven[4].match(/\d+/)[0]),
+        fail: parseInt(seven[5].match(/\d+/)[0]),
+      };
+      return {
+        items,
+        op,
+        test,
+        business: 0,
+      };
+    });
+}
+
+const runInspect = (old, op) => {
+  let val = isNaN(op.val) ? old : op.val;
+  if (op.op === "*") {
+    return old * val;
+  } else {
+    // +
+    return old + val;
   }
-  return opVal * old;
 };
 
-let buildTest = (test, pass, fail) => (old) => {
-  if (old % test === 0) {
-    return pass;
+const releif = (item) => {
+  return Math.floor(item / 3);
+};
+
+const getNext = (item, test) => {
+  if (item % test.divisor) {
+    return test.fail;
   }
-  return fail;
+  return test.pass;
+};
+
+const getAns = (monkeys) => {
+  let [m1, m2] = monkeys.sort((a, b) => b.business - a.business);
+  return m1.business * m2.business;
 };
 
 function part1() {
-  let lines = fs.readFileSync(inputFile).toString().split("\n");
-
-  let monkeys = [];
-
-  for (let i = 0; i < lines.length; i += 7) {
-    let index = parseInt(lines[i].match(/\d+/)[0]);
-    let items = lines[i + 1].match(/\d+/g).map((str) => parseInt(str));
-    let opM = lines[i + 2].match(/old (\*|\+) (\d+|old)/);
-    let op = opM[1];
-    // if isNaN then use 'old'
-    let opVal = parseInt(opM[2]);
-
-    let test = parseInt(lines[i + 3].match(/\d+/)[0]);
-
-    let pass = parseInt(lines[i + 4].match(/\d+/)[0]);
-    let fail = parseInt(lines[i + 5].match(/\d+/)[0]);
-
-    monkeys.push({
-      items,
-      op,
-      opVal,
-      test,
-      pass,
-      fail,
-      count: 0,
-    });
-  }
-
+  let monkeys = parse();
   for (let i = 0; i < 20; i++) {
-    monkeys.forEach((monkey, mI) => {
-      let len = monkey.items.length;
-      for (let j = 0; j < len; j++) {
-        let worry = monkey.items.shift();
-
-        log({mI})
-        log("before", worry);
-
-        worry = buildOp(monkey.op, monkey.opVal)(worry);
-        worry = Math.floor(worry / 3);
-        let next = buildTest(monkey.test, monkey.pass, monkey.fail)(worry);
-        monkeys[next].items.push(worry);
-        monkey.count += 1;
-
-        log("after", { worry, next });
+    monkeys.forEach((monkey) => {
+      while (monkey.items.length) {
+        let old = monkey.items.shift();
+        let item = runInspect(old, monkey.op);
+        monkey.business += 1;
+        item = releif(item);
+        let next = getNext(item, monkey.test);
+        monkeys[next].items.push(item);
       }
     });
   }
-  let max = monkeys.map((m) => m.count).sort();
-  log(max[0] * max[1]);
+  log("part1", getAns(monkeys));
 }
 
-part1();
+function part2() {
+  let monkeys = parse();
+  let rounds = 20; // 10000;
+  for (let i = 0; i < rounds; i++) {
+    monkeys.forEach((monkey) => {
+      while (monkey.items.length) {
+        let old = monkey.items.shift();
+        let item = runInspect(old, monkey.op);
+        monkey.business += 1;
+
+        let next;
+        let mod = item % monkey.test.divisor;
+        if (mod) {
+          next = monkey.test.fail;
+        } else {
+          next = monkey.test.pass;
+          item = item % monkey.test.divisor;
+        }
+
+        monkeys[next].items.push(item % monkey.test.divisor);
+      }
+    });
+  }
+  log(monkeys);
+  log("part2", getAns(monkeys));
+}
+
+// part1()
+part2();
