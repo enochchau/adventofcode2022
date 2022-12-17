@@ -1,5 +1,5 @@
 (local input-file :./inputs/day5.txt)
-(local fennel (require :bulb.fennel))
+(local fennel (require :fennel))
 (fn pprint [...]
   (print (fennel.view [...])))
 

@@ -1,6 +1,6 @@
 (local input-file :./inputs/day8.txt)
 ;; (local pprint vim.pretty_print)
-(local fennel (require :bulb.fennel))
+(local fennel (require :fennel))
 (fn pprint [...]
   (print (fennel.view [...])))
 
