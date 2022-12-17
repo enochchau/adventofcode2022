@@ -1,101 +1,100 @@
-const assert = require("node:assert");
 const fs = require("fs");
 
 let intputFile = "./inputs/day12.txt";
 
 let log = console.log;
 
-let S = "S".charCodeAt(0);
-let E = "E".charCodeAt(0);
-
-const find = (cCode) => (m) => {
-  for (let i = 0; i < m.length; i++) {
-    for (let j = 0; j < m[i].length; j++) {
-      if (m[i][j] === cCode) return `${i},${j}`;
-    }
-  }
-};
-
-const fix = (m, pointStr, c) => {
-  let [row, col] = pointStr.split(",").map((c) => parseInt(c));
-  m[row][col] = c.charCodeAt(0);
-};
-
-const findStart = find(S);
-const findEnd = find(E);
-
-const inBounds = (m, row, col) =>
-  row >= 0 && row < m.length && col >= 0 && col < m[row].length;
-
-const canMove = (m, row, col, nRow, nCol) => m[nRow][nCol] - m[row][col] <= 1;
-
-// ----
-let input = fs.readFileSync(intputFile).toString();
-
-let m = input
-  .trim()
-  .split("\n")
-  .map((s) => s.split("").map((c) => c.charCodeAt(0)));
-
-let start = findStart(m);
-fix(m, start, "a");
-
-let end = findEnd(m);
-fix(m, end, "z");
-
-let adj = {};
-
-for (let row = 0; row < m.length; row++) {
-  for (let col = 0; col < m[row].length; col++) {
-    adj[`${row},${col}`] = [];
-    [
-      [row + 1, col],
-      [row - 1, col],
-      [row, col + 1],
-      [row, col - 1],
-    ].forEach(([nRow, nCol]) => {
-      if (inBounds(m, nRow, nCol) && canMove(m, row, col, nRow, nCol)) {
-        adj[`${row},${col}`].push(`${nRow},${nCol}`);
-      }
-    });
-  }
+function hash([x, y]) {
+  return `${x},${y}`;
 }
 
+function canMove(matrix, [x, y], [nextX, nextY]) {
+  let inBounds =
+    nextX >= 0 &&
+    nextX < matrix.length &&
+    nextY >= 0 &&
+    nextY < matrix[0].length;
+
+  if (!inBounds) return false;
+
+  let curr = matrix[x][y];
+  let next = matrix[nextX][nextY];
+
+  return next - curr <= 1;
+}
+
+function parse() {
+  let matrix = fs
+    .readFileSync(intputFile)
+    .toString()
+    .trim()
+    .split("\n")
+    .map((l) => l.split(""));
+
+  let start, end;
+
+  for (let [x, row] of Object.entries(matrix)) {
+    x = parseInt(x);
+    for (let [y, p] of Object.entries(row)) {
+      y = parseInt(y);
+      if (p === "S") {
+        matrix[x][y] = "a";
+        start = [x, y];
+      }
+      if (p === "E") {
+        matrix[x][y] = "z";
+        end = [x, y];
+      }
+      matrix[x][y] = matrix[x][y].charCodeAt(0) - 97;
+    }
+  }
+
+  return [matrix, start, end];
+}
+
+let [matrix, start, end] = parse();
+let endHash = hash(end);
+
+let steps = Array(matrix.length)
+  .fill(null)
+  .map(() =>
+    Array(matrix[0].length)
+      .fill(null)
+      .map(() => Infinity)
+  );
+steps[start[0]][start[1]] = 0;
 let q = [start];
-let seen = new Set();
-let costs = Object.keys(adj).reduce((acc, k) => {
-  acc[k] = Infinity;
-  return acc;
-}, {});
-costs[start] = 0;
+let seen = new Set([hash(start)]);
 
-while (q.length > 0) {
-  let point = q.shift();
-  let cost = costs[point];
+while (q.length) {
+  let node = q.shift();
 
-  if (point === end) {
+  let [x, y] = node;
+  let step = steps[x][y];
+
+  let nodeHash = hash(node);
+
+  if (nodeHash === endHash) {
     break;
   }
 
-  seen.add(point);
+  [
+    [x + 1, y],
+    [x - 1, y],
+    [x, y + 1],
+    [x, y - 1],
+  ].forEach((next) => {
+    if (seen.has(hash(next))) return;
+    let move = canMove(matrix, node, next);
+    if (!move) return;
 
-  let needsSort = false;
-  for (const next of adj[point]) {
-    if (!seen.has(next) || costs[next] > cost + 1) {
-      q.push(next);
-      costs[next] = cost + 1;
-      needsSort = true;
-    }
-  }
+    let [nx, ny] = next;
+    steps[nx][ny] = Math.min(step + 1, steps[nx][ny]);
+    seen.add(hash(next))
+    q.push(next);
+  });
 
-  if (needsSort)
-    q.sort((a, b) => {
-      if (costs[a] > costs[b]) return 1;
-      if (costs[a] < costs[b]) return -1;
-      return 0;
-    });
+  q.sort(([ax, ay], [bx, by]) => steps[ax][ay] - steps[bx][by]);
 }
 
-log(costs);
-log("end", end);
-log("end costs", costs[end]);
+log("end", end, steps[end[0]][end[1]]);
