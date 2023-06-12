@@ -1,2 +1,5 @@
 inputs/
 Session.vim
+*.cmi
+*.cmx
+*.o
