@@ -24,4 +24,4 @@ let () =
   let input = read_input file in
   let calories = calc_calories input [] 0 in
   let most_calories = List.fold_left max 0 calories in
-  printf "%d" most_calories
+  printf "part1: %d" most_calories
